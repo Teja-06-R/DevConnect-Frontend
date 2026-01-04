@@ -1,8 +1,12 @@
 import React from 'react'
+import { useSelector } from 'react-redux'
+import ProfileView from './ProfileView';
 
 const Profile = () => {
   return (
-    <div>Profile</div>
+    <div>
+      <ProfileView />
+    </div>
   )
 }
 
