@@ -1,20 +1,22 @@
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { removeUser } from '../utils/userSlice';
+import { removeUser } from "../utils/userSlice";
 import { BaseUrl } from "../utils/constants";
-import { Code2, User, Users, Inbox, LogOut, Sparkles } from 'lucide-react';
+import { Code2, User, Users, Inbox, LogOut, Sparkles } from "lucide-react";
 
 const NavBar = () => {
   const user = useSelector((store) => store.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const requests = useSelector((store) => store.requests);
+  const requestCount = requests?.length || 0;
 
   const handleLogout = async () => {
     try {
       await axios.post(BaseUrl + "/logout", {}, { withCredentials: true });
       dispatch(removeUser());
-      return navigate('/login');
+      return navigate("/login");
     } catch (err) {
       console.log(err);
     }
@@ -24,9 +26,8 @@ const NavBar = () => {
     <nav className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          
           {/* Logo Section */}
-          <Link to='/' className="flex items-center gap-2 group">
+          <Link to="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 group-hover:shadow-blue-300 transition-all group-hover:scale-105">
               <Code2 className="w-6 h-6 text-white" />
             </div>
@@ -38,18 +39,17 @@ const NavBar = () => {
           {/* User Section */}
           {user && (
             <div className="flex items-center gap-4">
-              
               {/* Desktop Navigation Links */}
               <div className="hidden md:flex items-center gap-2">
-                <Link 
-                  to='/connections' 
+                <Link
+                  to="/connections"
                   className="px-4 py-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-2 font-medium"
                 >
                   <Users className="w-4 h-4" />
                   Connections
                 </Link>
-                <Link 
-                  to='/requests' 
+                <Link
+                  to="/requests"
                   className="px-4 py-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-2 font-medium"
                 >
                   <Inbox className="w-4 h-4" />
@@ -98,8 +98,8 @@ const NavBar = () => {
 
                   {/* Menu Items */}
                   <li>
-                    <Link 
-                      to='/profile' 
+                    <Link
+                      to="/profile"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 rounded-xl transition-all group"
                     >
                       <User className="w-4 h-4 text-slate-500 group-hover:text-blue-600" />
@@ -114,8 +114,8 @@ const NavBar = () => {
 
                   {/* Mobile Only Links */}
                   <li className="md:hidden">
-                    <Link 
-                      to="/connections" 
+                    <Link
+                      to="/connections"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 rounded-xl transition-all group"
                     >
                       <Users className="w-4 h-4 text-slate-500 group-hover:text-blue-600" />
@@ -125,22 +125,29 @@ const NavBar = () => {
                     </Link>
                   </li>
 
-                  <li className="md:hidden">
-                    <Link 
-                      to="/requests" 
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 rounded-xl transition-all group"
+                  <li>
+                    <Link
+                      to="/requests"
+                      className="flex items-center justify-between"
                     >
-                      <Inbox className="w-4 h-4 text-slate-500 group-hover:text-blue-600" />
-                      <span className="font-medium text-slate-700 group-hover:text-blue-600">
-                        Requests
+                      <span className="flex items-center gap-2">
+                        <Inbox className="w-4 h-4 text-slate-500 group-hover:text-blue-600" />
+                        <span className="font-medium text-slate-700 group-hover:text-blue-600">
+                          Requests
+                        </span>
                       </span>
+                      {requestCount > 0 && (
+                        <span className="badge badge-sm bg-red-500 text-white border-red-500">
+                          {requestCount}
+                        </span>
+                      )}
                     </Link>
                   </li>
 
                   <div className="divider my-2"></div>
 
                   <li>
-                    <a 
+                    <a
                       onClick={handleLogout}
                       className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 rounded-xl transition-all group cursor-pointer"
                     >
