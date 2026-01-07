@@ -1,38 +1,114 @@
-import React from 'react';
-import { Code2, MapPin, Briefcase, Github, Linkedin, Mail, X, Heart, Sparkles } from 'lucide-react';
+import React, { useState } from "react";
+import { Code2, Mail, X, Heart, Sparkles } from "lucide-react";
+import axios from "axios";
+import { BaseUrl } from "../utils/constants";
+import { useDispatch } from "react-redux";
+import { removeCurrentUser } from "../utils/feedSlice";
 
 const UserCard = ({ user }) => {
+  const dispatch = useDispatch();
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationDirection, setAnimationDirection] = useState(null); // 'left' | 'right'
+  const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+
   if (!user) return null;
 
-  const { 
-    name,
-    photoUrl,
-    about,
-    skills,
-    age,
-    gender
-  } = user;
+  const { _id, name, photoUrl, about, skills, age, gender } = user;
 
-  
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleSendRequest = async (status, id) => {
+    if (isLoading || isAnimating) return;
+
+    // Set animation direction
+    setAnimationDirection(status === "interested" ? "right" : "left");
+    setIsAnimating(true);
+    setIsLoading(true);
+
+    // Optimistic UI - remove after animation
+    setTimeout(() => {
+      dispatch(removeCurrentUser());
+    }, 300);
+
+    try {
+      await axios.post(
+        `${BaseUrl}/request/send/${status}/${id}`,
+        {},
+        { withCredentials: true }
+      );
+      showToast(
+        status === "interested" ? "Connection request sent! 💙" : "Passed",
+        "success"
+      );
+    } catch (err) {
+      showToast(
+        err.response?.data?.message || "Something went wrong",
+        "error"
+      );
+      // Note: In production, you might want to revert the optimistic update here
+    } finally {
+      setIsLoading(false);
+      setIsAnimating(false);
+      setAnimationDirection(null);
+    }
+  };
+
+  // Animation classes
+  const getCardAnimationClasses = () => {
+    if (!isAnimating) return "translate-x-0 rotate-0 opacity-100";
+    if (animationDirection === "right")
+      return "translate-x-[150%] rotate-12 opacity-0";
+    if (animationDirection === "left")
+      return "-translate-x-[150%] -rotate-12 opacity-0";
+    return "";
+  };
 
   return (
-    <div className="flex items-center justify-center w-full py-8 px-4">
-      <div className="w-full max-w-md transition-all duration-300">
+    <div className="flex items-center justify-center w-full py-8 px-4 relative">
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl shadow-lg font-medium transition-all duration-300 ${
+            toast.type === "success"
+              ? "bg-green-500 text-white"
+              : "bg-red-500 text-white"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
+
+      <div
+        className={`w-full max-w-md transition-all duration-300 ease-out ${getCardAnimationClasses()}`}
+      >
         {/* Card Container */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-          
           {/* Header Section with Image */}
           <div className="relative h-72 bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 overflow-hidden">
             {/* Subtle Grid Pattern */}
             <div className="absolute inset-0 opacity-10">
               <svg width="100%" height="100%">
-                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
+                <pattern
+                  id="grid"
+                  width="40"
+                  height="40"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <path
+                    d="M 40 0 L 0 0 0 40"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="1"
+                  />
                 </pattern>
                 <rect width="100%" height="100%" fill="url(#grid)" />
               </svg>
             </div>
-            
+
             {/* Profile Image */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative">
@@ -41,6 +117,12 @@ const UserCard = ({ user }) => {
                   src={photoUrl}
                   alt={name}
                   className="relative w-44 h-44 rounded-full border-4 border-white shadow-2xl object-cover bg-white"
+                  onError={(e) => {
+                    e.target.src =
+                      "https://ui-avatars.com/api/?name=" +
+                      encodeURIComponent(name) +
+                      "&background=6366f1&color=fff";
+                  }}
                 />
                 {/* Online Status Indicator */}
                 <div className="absolute bottom-2 right-2 w-6 h-6 bg-emerald-500 rounded-full border-4 border-white shadow-lg"></div>
@@ -51,7 +133,9 @@ const UserCard = ({ user }) => {
             <div className="absolute top-4 left-4">
               <div className="px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-full flex items-center gap-1.5 shadow-lg">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-xs font-semibold text-slate-700">Open to Connect</span>
+                <span className="text-xs font-semibold text-slate-700">
+                  Open to Connect
+                </span>
               </div>
             </div>
 
@@ -65,7 +149,6 @@ const UserCard = ({ user }) => {
 
           {/* Content Section */}
           <div className="p-6 space-y-5">
-            
             {/* Name and Info */}
             <div className="text-center space-y-2">
               <h2 className="text-3xl font-bold text-slate-900 tracking-tight">
@@ -108,14 +191,18 @@ const UserCard = ({ user }) => {
 
             {/* Action Buttons */}
             <div className="flex gap-4 pt-4">
-              <button 
-                className="flex-1 py-4 bg-white hover:bg-red-50 border-2 border-slate-200 hover:border-red-300 rounded-2xl font-semibold text-slate-600 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 shadow-sm"
+              <button
+                disabled={isLoading || isAnimating}
+                className="flex-1 py-4 bg-white hover:bg-red-50 border-2 border-slate-200 hover:border-red-300 rounded-2xl font-semibold text-slate-600 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                onClick={() => handleSendRequest("ignored", _id)}
               >
                 <X className="w-5 h-5 transition-transform duration-300" />
                 Pass
               </button>
-              <button 
-                className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-2xl font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-200 hover:shadow-blue-300 hover:scale-105 active:scale-95"
+              <button
+                disabled={isLoading || isAnimating}
+                className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-2xl font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-blue-200 hover:shadow-blue-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                onClick={() => handleSendRequest("interested", _id)}
               >
                 <Heart className="w-5 h-5" />
                 Connect

@@ -21,6 +21,7 @@ const Connections = () => {
   useEffect(() => {
     getUserConnections();
   }, []);
+  
 
   if (!connections) {
     return (

@@ -4,27 +4,98 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addUser } from "../utils/userSlice";
 import { BaseUrl } from "../utils/constants";
-import { Mail, Lock, Code2, AlertCircle } from "lucide-react";
+import { Mail, Lock, Code2, AlertCircle, User } from "lucide-react";
 
 const Login = () => {
-  const [emailId, setEmailId] = useState("");
-  const [password, setPassword] = useState("");
+  const [isSignup, setIsSignup] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    emailId: "",
+    password: ""
+  });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+    // Clear error when user starts typing
+    if (error) setError("");
+  };
+
+  const validateForm = () => {
+    if (isSignup && !formData.name.trim()) {
+      setError("Name is required");
+      return false;
+    }
+    if (!formData.emailId.trim()) {
+      setError("Email is required");
+      return false;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailId)) {
+      setError("Please enter a valid email");
+      return false;
+    }
+    if (!formData.password) {
+      setError("Password is required");
+      return false;
+    }
+    if (isSignup && formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    setError("");
+
     try {
+      const endpoint = isSignup ? "/signup" : "/login";
+      const payload = isSignup 
+        ? { name: formData.name, emailId: formData.emailId, password: formData.password }
+        : { emailId: formData.emailId, password: formData.password };
+
       const res = await axios.post(
-        BaseUrl + "/login",
-        { emailId, password },
+        BaseUrl + endpoint,
+        payload,
         { withCredentials: true }
       );
-      dispatch(addUser(res.data));
+
+      // Extract user data from response
+      // Backend might return { data: {...} } or just {...}
+      const userData = res.data.data || res.data;
+      
+      console.log('Response:', res.data);
+      console.log('User data to dispatch:', userData);
+      
+      dispatch(addUser(userData));
       navigate("/");
     } catch (err) {
-      setError(err?.response?.data || "Something went wrong");
+      const errorMessage = err?.response?.data?.message || err?.response?.data || "Something went wrong";
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSubmit();
+    }
+  };
+
+  const toggleMode = () => {
+    setIsSignup(!isSignup);
+    setError("");
+    setFormData({ name: "", emailId: "", password: "" });
   };
 
   return (
@@ -36,20 +107,45 @@ const Login = () => {
             <Code2 className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Welcome Back
+            {isSignup ? "Join DevConnect" : "Welcome Back"}
           </h1>
           <p className="text-slate-600 mt-2">
-            Sign in to continue connecting with developers
+            {isSignup 
+              ? "Create your account and start connecting with developers"
+              : "Sign in to continue connecting with developers"}
           </p>
         </div>
 
-        {/* Login Card */}
+        {/* Form Card */}
         <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 p-8">
           {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+
+          {/* Name Field (Only for Signup) */}
+          {isSignup && (
+            <div className="mb-5">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  <User className="w-5 h-5" />
+                </div>
+                <input
+                  type="text"
+                  name="name"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none text-slate-700"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={handleChange}
+                  onKeyPress={handleKeyPress}
+                />
+              </div>
             </div>
           )}
 
@@ -64,10 +160,12 @@ const Login = () => {
               </div>
               <input
                 type="email"
+                name="emailId"
                 className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none text-slate-700"
                 placeholder="you@example.com"
-                value={emailId}
-                onChange={(e) => setEmailId(e.target.value)}
+                value={formData.emailId}
+                onChange={handleChange}
+                onKeyPress={handleKeyPress}
               />
             </div>
           </div>
@@ -83,20 +181,35 @@ const Login = () => {
               </div>
               <input
                 type="password"
+                name="password"
                 className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none text-slate-700"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                placeholder={isSignup ? "At least 6 characters" : "Enter your password"}
+                value={formData.password}
+                onChange={handleChange}
+                onKeyPress={handleKeyPress}
               />
             </div>
+            {isSignup && (
+              <p className="text-xs text-slate-500 mt-2 ml-1">
+                Password must be at least 6 characters long
+              </p>
+            )}
           </div>
 
-          {/* Login Button */}
+          {/* Submit Button */}
           <button
-            className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all hover:scale-105 active:scale-95"
-            onClick={handleLogin}
+            className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-200 hover:shadow-blue-300 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            onClick={handleSubmit}
+            disabled={isLoading}
           >
-            Sign In
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                {isSignup ? "Creating Account..." : "Signing In..."}
+              </div>
+            ) : (
+              isSignup ? "Create Account" : "Sign In"
+            )}
           </button>
 
           {/* Divider */}
@@ -106,19 +219,19 @@ const Login = () => {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-white text-slate-500">
-                New to DevConnect?
+                {isSignup ? "Already have an account?" : "New to DevConnect?"}
               </span>
             </div>
           </div>
 
-          {/* Sign Up Link */}
+          {/* Toggle Link */}
           <div className="text-center">
-            <a
-              href="#"
+            <button
+              onClick={toggleMode}
               className="text-blue-600 hover:text-blue-700 font-semibold text-sm hover:underline"
             >
-              Create an account →
-            </a>
+              {isSignup ? "Sign in instead →" : "Create an account →"}
+            </button>
           </div>
         </div>
 
