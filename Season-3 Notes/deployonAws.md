@@ -1,0 +1,20 @@
+- First create an aws account on aws console and then Select EC2 
+- Inside EC2 create a new machiine with ubuntu Os 
+- Then create a key-pair and pem file will be downloaded.
+- start the instance.
+- click connect button in that there are 4 ways to connect to the machine we will choose 'SSH client' method.
+- Then open cmd and get into Downloads folder and then do this:
+   - icacls "devconnect secret.pem" /inheritance:r  
+   - icacls "devconnect secret.pem"
+   - after that click
+   - ssh -i "devconnect secret.pem" ubuntu@ec2-13-211-152-228.ap-southeast-2.compute.amazonaws.com
+- Then we will go into ubuntu.
+- Then clone our github folder and install required packages like node js(nodejs version on local system and ubuntu need to be same!), npm install
+- then click npm run build.
+    -  sudo apt update
+    - sudo apt install nginx
+    - sudo systemctl start nginx
+    - sudo systemctl enable nginx
+    - Copy code from dist(build files) to /var/www/html/
+    - sudo scp -r dist/* /var/www/html/
+    - Enable port :80 of your instance
