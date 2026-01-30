@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { BaseUrl } from '../utils/constants';
-import axios from "axios";
+//import { BaseUrl } from '../utils/constants';
+import api from "../utils/api";
+
 import { addConnections } from '../utils/connectionsSlice';
 import { Users, Code2, Mail, Calendar } from 'lucide-react';
 
@@ -11,7 +12,7 @@ const Connections = () => {
 
   const getUserConnections = async () => {
     try {
-      const res = await axios.get(BaseUrl + "/user/connections", { withCredentials: true });
+      const res = await api.get( "/user/connections", { withCredentials: true });
       dispatch(addConnections(res.data));
     } catch (err) {
       console.log(err);

@@ -1,8 +1,8 @@
-import axios from "axios";
+import api from "../utils/api";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { removeUser } from "../utils/userSlice";
-import { BaseUrl } from "../utils/constants";
+// import { BaseUrl } from "../utils/constants";
 import { Code2, User, Users, Inbox, LogOut, Sparkles } from "lucide-react";
 
 const NavBar = () => {
@@ -14,7 +14,7 @@ const NavBar = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post(BaseUrl + "/logout", {}, { withCredentials: true });
+      await api.post("/logout", {}, { withCredentials: true });
       dispatch(removeUser());
       return navigate("/login");
     } catch (err) {

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Code2, Mail, X, Heart, Sparkles } from "lucide-react";
-import axios from "axios";
-import { BaseUrl } from "../utils/constants";
+import api from "../utils/api";
+//import { BaseUrl } from "../utils/constants";
 import { useDispatch } from "react-redux";
 import { removeCurrentUser } from "../utils/feedSlice";
 
@@ -35,8 +35,8 @@ const UserCard = ({ user }) => {
     }, 300);
 
     try {
-      await axios.post(
-        `${BaseUrl}/request/send/${status}/${id}`,
+      await api.post(
+        `/request/send/${status}/${id}`,
         {},
         { withCredentials: true }
       );

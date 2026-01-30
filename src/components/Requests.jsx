@@ -1,6 +1,6 @@
-import axios from "axios";
+import api from "../utils/api";
 import React, { useEffect, useState } from "react";
-import { BaseUrl } from "../utils/constants";
+// import { BaseUrl } from "../utils/constants";
 import { useDispatch, useSelector } from "react-redux";
 import { addRequest, removeRequest } from "../utils/requestSlice";
 import { Inbox, Check, X, Code2, Calendar } from 'lucide-react';
@@ -12,7 +12,7 @@ const Requests = () => {
 
   const getUserRequests = async () => {
     try {
-      const res = await axios.get(BaseUrl + "/user/request/received", {
+      const res = await api.get("/user/request/received", {
         withCredentials: true,
       });
       dispatch(addRequest(res.data.connectionRequests));
@@ -26,8 +26,8 @@ const Requests = () => {
     setLoadingStates(prev => ({ ...prev, [requestId]: status }));
 
     try {
-      await axios.post(
-        BaseUrl + "/request/review/" + status + "/" + requestId,
+      await api.post(
+         "/request/review/" + status + "/" + requestId,
         {},
         { withCredentials: true }
       );

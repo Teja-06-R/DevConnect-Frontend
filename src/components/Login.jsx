@@ -1,9 +1,9 @@
-import axios from "axios";
+import api from "../utils/api";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addUser } from "../utils/userSlice";
-import { BaseUrl } from "../utils/constants";
+//import { BaseUrl } from "../utils/constants";
 import { Mail, Lock, Code2, AlertCircle, User } from "lucide-react";
 
 const Login = () => {
@@ -63,8 +63,8 @@ const Login = () => {
         ? { name: formData.name, emailId: formData.emailId, password: formData.password }
         : { emailId: formData.emailId, password: formData.password };
 
-      const res = await axios.post(
-        BaseUrl + endpoint,
+      const res = await api.post(
+         endpoint,
         payload,
         { withCredentials: true }
       );

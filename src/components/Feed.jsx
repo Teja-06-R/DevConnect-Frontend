@@ -1,6 +1,6 @@
-import axios from "axios";
+import api from "../utils/api";
 import React, { useEffect } from "react"; // ✅ Removed useCallback
-import { BaseUrl } from "../utils/constants";
+//import { BaseUrl } from "../utils/constants";
 import { useDispatch, useSelector } from "react-redux";
 import { addFeed, setLoading, setError } from "../utils/feedSlice";
 import UserCard from "./UserCard";
@@ -17,7 +17,7 @@ const Feed = () => {
     const getFeed = async () => {
       dispatch(setLoading(true));
       try {
-        const res = await axios.get(BaseUrl + "/user/feed", {
+        const res = await api.get( "/user/feed", {
           withCredentials: true,
         });
         dispatch(addFeed(res?.data?.data || []));
@@ -35,7 +35,7 @@ const Feed = () => {
   const handleRefresh = async () => {
     dispatch(setLoading(true));
     try {
-      const res = await axios.get(BaseUrl + "/user/feed", {
+      const res = await api.get("/user/feed", {
         withCredentials: true,
       });
       dispatch(addFeed(res?.data?.data || []));

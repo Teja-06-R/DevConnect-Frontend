@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Save, X, Plus, Trash2 } from "lucide-react";
-import axios from "axios";
-import { BaseUrl } from "../utils/constants";
+import api from "../utils/api";
+//import { BaseUrl } from "../utils/constants";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
 
@@ -47,7 +47,7 @@ const EditProfile = ({ user, onCancel }) => {
     setIsLoading(true);
     setError("");
     try {
-      const res = await axios.patch(BaseUrl + "/profile/edit", formData, {
+      const res = await api.patch("/profile/edit", formData, {
         withCredentials: true,
       });
 
