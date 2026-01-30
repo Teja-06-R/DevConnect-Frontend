@@ -18,3 +18,5 @@
     - Copy code from dist(build files) to /var/www/html/
     - sudo scp -r dist/* /var/www/html/
     - Enable port :80 of your instance
+config nginx - /etc/nginx/sites-available/default
+    - restart nginx - sudo systemctl restart nginx
